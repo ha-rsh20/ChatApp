@@ -1,0 +1,25 @@
+message {
+  display: block;
+  margin: 0.5rem;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: gray;
+  color: black;
+  text-align: left;
+  padding-left: 5px;
+}
+
+contact {
+  display: block;
+  margin: 0.5rem;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: gray;
+  color: black;
+  text-align: left;
+  padding-left: 5px;
+}
+
+contact:hover {
+  cursor: pointer;
+}
