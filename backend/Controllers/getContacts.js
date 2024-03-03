@@ -28,7 +28,6 @@ const getContacts = expressAsyncHandler(async (req, res) => {
     ids = ids.split(",");
   }
 
-  //console.log(users.length);
   let cFNames = "",
     cLNames = "",
     cEmail = "",
@@ -50,20 +49,9 @@ const getContacts = expressAsyncHandler(async (req, res) => {
           lastname: users[j].lastname,
           email: users[j].email,
         };
-        // data[i].id = users[j].uid;
-        // data[i].firstname = users[j].firstname;
-        // data[i].lastname = users[j].lastname;
-        // data[i].email = users[j].email;
       }
     }
   }
-  // let data = {
-  //   cId,
-  //   cFNames,
-  //   cLNames,
-  //   cEmail,
-  // };
-  //return data;
   res.status(201).send(data);
 });
 

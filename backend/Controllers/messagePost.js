@@ -23,7 +23,7 @@ const postMessage = async (msg, sid, rid) => {
     console.log(err);
   });
 
-  return lastId;
+  return newMessage;
 };
 
 module.exports = { postMessage };

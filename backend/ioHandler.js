@@ -4,6 +4,8 @@ const { postMessage } = require("./Controllers/messagePost");
 const { getContacts } = require("./Controllers/getContacts");
 
 const Handler = async (server) => {
+  const idToSocket = new Map();
+
   const io = new Server(server, {
     cors: true,
     connectionStateRecovery: {},
@@ -11,10 +13,30 @@ const Handler = async (server) => {
 
   io.on("connection", async (socket) => {
     console.log("socket connected!");
-    socket.on("new-message", async (msg, sid, rid) => {
-      let lastId = postMessage(msg, sid, rid);
 
-      io.emit("new-message", msg, lastId + 1);
+    socket.on("con-id", (socketId, userId) => {
+      idToSocket.set(userId, socket.id);
+      console.log(idToSocket);
+    });
+
+    socket.on("new-message", async (msg, sid, rid) => {
+      let newMessage = await postMessage(msg, sid, rid);
+      const senderSocketId = idToSocket.get(sid);
+      let receiverSocketId;
+      idToSocket.forEach((val, key) => {
+        if (key == rid) {
+          receiverSocketId = val;
+          return;
+        }
+      });
+
+      io.to(senderSocketId).emit("new-message", newMessage, newMessage.mid);
+      io.to(receiverSocketId).emit(
+        "new-message-from-receiver",
+        newMessage,
+        newMessage.mid,
+        sid
+      );
     });
 
     socket.on("get-contacts", async (uid) => {

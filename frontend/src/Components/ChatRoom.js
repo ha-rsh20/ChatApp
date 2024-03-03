@@ -2,36 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useSocket } from "../Context/SocketProvider";
 import "./message.css";
 import axios from "axios";
-import {
-  Button,
-  CssBaseline,
-  Input,
-  TextField,
-  ThemeProvider,
-} from "@mui/material";
-import { useSelector } from "react-redux";
+import { Button, TextField } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { io } from "socket.io-client";
+import { updateMessage } from "../state/slice/messageSlice";
 
 function ChatRoom(props) {
-  const [rid, setRId] = useState(0);
+  const [rid, setRId] = useState("0");
   const [sendA, setSendA] = useState(rid === 0 ? true : false);
   const [messages, setMessages] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [theme, setTheme] = useState(useSelector((state) => state.users.mode));
   const [uid, setUId] = useState(sessionStorage.getItem("uid"));
+  const dispatch = useDispatch();
   const socket = useSocket();
-
-  const darkButtonStyle = {
-    background: "white",
-    color: "black",
-  };
-  const lightButtonStyle = {
-    background: "black",
-    color: "white",
-  };
-
-  const handleOnClickContact = (id) => {
-    socket.emit("getContactMessages", id);
-  };
 
   const getContact = () => {
     axios
@@ -42,20 +25,14 @@ function ChatRoom(props) {
       .catch((err) => console.log(err));
   };
 
-  const getMessage = () => {
-    axios
-      .get("http://localhost:4000/user/getMessage/" + uid)
-      .then((data) => {
-        setMessages(data.data);
-      })
-      .catch((err) => console.log(err));
-  };
-
-  const getContactMessage = (rid) => {
-    setRId(rid);
+  const getContactMessage = (receiverid) => {
+    setRId(receiverid);
+    sessionStorage.setItem("id", receiverid);
     setSendA(false);
     axios
-      .get("http://localhost:4000/user/getContactMessage/" + uid + "/" + rid)
+      .get(
+        "http://localhost:4000/user/getContactMessage/" + uid + "/" + receiverid
+      )
       .then((data) => {
         setMessages(data.data);
       })
@@ -64,20 +41,20 @@ function ChatRoom(props) {
       });
   };
 
-  const newMessage = (msg, serverOffset) => {
-    // const item = document.createElement("message");
-    // item.textContent = msg;
-    // const messages = document.getElementById("messages");
-    // messages.appendChild(item);
-    // messages.scrollTo(0, document.body.scrollHeight);
-    // window.scrollTo(0, document.body.scrollHeight);
-    console.log(messages);
-    // setMessages(
-    //   messages.push({
-    //     mid: messages[messages.length - 1].mid + 1,
-    //     message: msg,
-    //   })
-    // );
+  const NewMessage = (newMessage, serverOffset) => {
+    setMessages((msgs) => [...msgs, newMessage]);
+
+    socket.auth.id = uid;
+    socket.auth.serverOffset = serverOffset;
+  };
+
+  const NewMessageFrom = (newMessage, serverOffset, nid) => {
+    let zid;
+    setRId((id) => (zid = id));
+    if (nid == zid) {
+      setMessages((msgs) => [...msgs, newMessage]);
+    }
+
     socket.auth.id = uid;
     socket.auth.serverOffset = serverOffset;
   };
@@ -90,14 +67,20 @@ function ChatRoom(props) {
   };
 
   useEffect(() => {
-    console.log(sendA);
+    const messagesBlock = document.getElementById("messages");
+    messagesBlock.scrollTo(0, messagesBlock.scrollHeight);
+  }, [messages]);
+
+  useEffect(() => {
+    socket.emit("con-id", socket.id, uid);
     setUId(sessionStorage.getItem("uid"));
     getContact();
-    socket.on("new-message", newMessage);
-    //socket.on("u-contacts", getContact);
+    socket.on("new-message", NewMessage);
+    socket.on("new-message-from-receiver", NewMessageFrom);
 
     return () => {
-      socket.off("new-message", newMessage);
+      socket.off("new-message", NewMessage);
+      socket.off("new-message-from-receiver", NewMessageFrom);
     };
   }, []);
   return (
@@ -148,7 +131,17 @@ function ChatRoom(props) {
         >
           Messages
           {messages.map((item) => (
-            <div key={item.mid}>{<message>{item.message}</message>}</div>
+            <div key={item.mid} style={{ width: "100%" }}>
+              <div
+                style={
+                  item.sid == uid
+                    ? { display: "flex", flexWrap: "wrap", float: "right" }
+                    : { display: "flex", flexWrap: "wrap" }
+                }
+              >
+                {<message>{item.message}</message>}
+              </div>
+            </div>
           ))}
         </div>
       </div>

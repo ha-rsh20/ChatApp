@@ -19,8 +19,10 @@ import { Button } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUserMode } from "../state/slice/userSlice";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function NavBar(props) {
+  const [fUsers, setFUsers] = useState([]);
   const [mode, setMode] = useState(useSelector((state) => state.users.mode));
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -117,6 +119,17 @@ function NavBar(props) {
     } else {
       navigate("/auth");
     }
+  };
+
+  const onSearch = (input) => {
+    axios
+      .get("http://localhost:4000/user/searchUser/" + input)
+      .then((data) => {
+        console.log(data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const menuId = "primary-search-account-menu";
@@ -232,6 +245,9 @@ function NavBar(props) {
               <StyledInputBase
                 placeholder="Search…"
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => {
+                  onSearch(e.target.value);
+                }}
               />
             </Search>
             <Box sx={{ flexGrow: 1 }} />

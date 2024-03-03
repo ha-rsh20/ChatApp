@@ -9,12 +9,10 @@ import SocketProvider from "./Context/SocketProvider";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <SocketProvider>
-        <App />
-      </SocketProvider>
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <SocketProvider>
+      <App />
+    </SocketProvider>
+  </Provider>
 );
 reportWebVitals();
