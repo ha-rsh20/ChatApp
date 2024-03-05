@@ -48,6 +48,45 @@ const getContacts = async (id) => {
   return data;
 };
 
-const addContacts = (req, res) => {};
+const addContacts = async (req, res) => {
+  let con;
+  await contact
+    .findOne({ uid: req.params.uid })
+    .then((data) => {
+      con = data;
+    })
+    .catch((err) => {
+      res.status(501).send(err);
+    });
+
+  con.cuid += req.params.cid + ",";
+
+  contact
+    .updateOne({ uid: req.params.uid }, { $set: con })
+    .then(() => {})
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+
+  await contact
+    .findOne({ uid: req.params.cid })
+    .then((data) => {
+      con = data;
+    })
+    .catch((err) => {
+      res.status(501).send(err);
+    });
+
+  con.cuid += req.params.uid + ",";
+
+  contact
+    .updateOne({ uid: req.params.cid }, { $set: con })
+    .then(() => {})
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+
+  res.status(201).send();
+};
 
 module.exports = { getContacts, addContacts };

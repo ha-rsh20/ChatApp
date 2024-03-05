@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled, alpha } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -15,14 +15,18 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import { Button } from "@mui/material";
+import { Autocomplete, Button, TextField } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUserMode } from "../state/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import { ReactSearchAutocomplete } from "react-search-autocomplete";
 
 function NavBar(props) {
-  const [fUsers, setFUsers] = useState([]);
+  const [uid, setUid] = useState(sessionStorage.getItem("uid"));
+  const [search, setSearch] = useState("");
+  let [fUsers, setFUsers] = useState([]);
   const [mode, setMode] = useState(useSelector((state) => state.users.mode));
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -115,21 +119,11 @@ function NavBar(props) {
     handleMenuClose();
     if (sessionStorage.getItem("login") != null) {
       sessionStorage.removeItem("login");
+      sessionStorage.removeItem("uid");
       navigate("/auth");
     } else {
       navigate("/auth");
     }
-  };
-
-  const onSearch = (input) => {
-    axios
-      .get("http://localhost:4000/user/searchUser/" + input)
-      .then((data) => {
-        console.log(data.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   const menuId = "primary-search-account-menu";
@@ -182,7 +176,7 @@ function NavBar(props) {
           {mode}
         </Button>
       </MenuItem>
-      <MenuItem>
+      {/* <MenuItem>
         <IconButton size="large" aria-label="show 4 new mails" color="inherit">
           <Badge badgeContent={4} color="error">
             <MailIcon />
@@ -201,7 +195,7 @@ function NavBar(props) {
           </Badge>
         </IconButton>
         <p>Notifications</p>
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton
           size="large"
@@ -216,12 +210,101 @@ function NavBar(props) {
       </MenuItem>
     </Menu>
   );
+
+  const handleOnSearch = (string, results) => {
+    // onSearch will have as the first callback parameter
+    // the string searched and for the second the results.
+    // results = fUsers.filter(
+    //   (user) =>
+    //     user.firstname.toLowerCase().includes(string) ||
+    //     user.lastname.toLowerCase().includes(string)
+    // );
+    // console.log(
+    //   items.filter((detail) => detail.name.toLowerCase().includes(string))
+    // );
+    console.log(string, results);
+  };
+
+  const handleOnHover = (result) => {
+    // the item hovered
+    console.log("result");
+  };
+
+  const handleOnSelect = (item) => {
+    // the item selected
+    setUid(sessionStorage.getItem("uid"));
+
+    axios
+      .put(
+        "http://localhost:4000/user/addContact/" +
+          sessionStorage.getItem("uid") +
+          "/" +
+          item.uid
+      )
+      .then(() => {
+        toast.success("Contact added!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      })
+      .catch((err) => {
+        toast.error("Error in adding contact!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      });
+    console.log(item.firstname);
+  };
+
+  const handleOnFocus = () => {
+    console.log("Focused");
+  };
+
+  const formatResult = (item) => {
+    return (
+      <>
+        <span style={{ display: "block", textAlign: "left" }}>
+          {item.firstname + " "}
+          {item.lastname}
+        </span>
+      </>
+    );
+  };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/user/searchUser/a")
+      .then((data) => {
+        setFUsers(
+          data.data.filter((u) => u.uid != sessionStorage.getItem("uid"))
+        );
+
+        //fUsers = data.data;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
   return (
-    <div style={{ marginTop: 10, marginLeft: 10, marginRight: 10 }}>
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar position="static">
-          <Toolbar>
-            {/* <IconButton
+    <div>
+      <div style={{ marginTop: 10, marginLeft: 10, marginRight: 10 }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <AppBar position="static">
+            <Toolbar>
+              {/* <IconButton
               size="large"
               edge="start"
               color="inherit"
@@ -230,15 +313,15 @@ function NavBar(props) {
             >
               <MenuIcon />
             </IconButton> */}
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ display: { xs: "none", sm: "block" } }}
-            >
-              ChatApp
-            </Typography>
-            <Search>
+              <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{ display: { xs: "none", sm: "block" } }}
+              >
+                ChatApp
+              </Typography>
+              {/* <Search>
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
@@ -246,19 +329,37 @@ function NavBar(props) {
                 placeholder="Search…"
                 inputProps={{ "aria-label": "search" }}
                 onChange={(e) => {
-                  onSearch(e.target.value);
+                  onSearch(e);
                 }}
               />
-            </Search>
-            <Box sx={{ flexGrow: 1 }} />
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <Button
-                onClick={handleModeChange}
-                style={mode === "dark" ? darkButtonStyle : lightButtonStyle}
-              >
-                {mode}
-              </Button>
-              {/* <IconButton
+              
+            </Search> */}
+              <div>
+                <div style={{ marginLeft: "2rem", width: "15rem" }}>
+                  <ReactSearchAutocomplete
+                    items={fUsers}
+                    maxResults={5}
+                    fuseOptions={{ keys: ["firstname", "lastname"] }}
+                    resultStringKeyName="firstname"
+                    onSearch={handleOnSearch}
+                    onHover={handleOnHover}
+                    onSelect={handleOnSelect}
+                    onFocus={handleOnFocus}
+                    autoFocus
+                    formatResult={formatResult}
+                  />
+                </div>
+              </div>
+
+              <Box sx={{ flexGrow: 1 }} />
+              <Box sx={{ display: { xs: "none", md: "flex" } }}>
+                <Button
+                  onClick={handleModeChange}
+                  style={mode === "dark" ? darkButtonStyle : lightButtonStyle}
+                >
+                  {mode}
+                </Button>
+                {/* <IconButton
                 size="large"
                 aria-label="show 4 new mails"
                 color="inherit"
@@ -276,37 +377,39 @@ function NavBar(props) {
                   <NotificationsIcon />
                 </Badge>
               </IconButton> */}
-              <IconButton
-                size="large"
-                edge="end"
-                aria-label="account of current user"
-                aria-controls={menuId}
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                style={{ marginLeft: 10 }}
-              >
-                <AccountCircle />
-              </IconButton>
-            </Box>
+                <IconButton
+                  size="large"
+                  edge="end"
+                  aria-label="account of current user"
+                  aria-controls={menuId}
+                  aria-haspopup="true"
+                  onClick={handleProfileMenuOpen}
+                  color="inherit"
+                  style={{ marginLeft: 10 }}
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Box>
 
-            <Box sx={{ display: { xs: "flex", md: "none" } }}>
-              <IconButton
-                size="large"
-                aria-label="show more"
-                aria-controls={mobileMenuId}
-                aria-haspopup="true"
-                onClick={handleMobileMenuOpen}
-                color="inherit"
-              >
-                <MoreIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
-        </AppBar>
-        {renderMobileMenu}
-        {renderMenu}
-      </Box>
+              <Box sx={{ display: { xs: "flex", md: "none" } }}>
+                <IconButton
+                  size="large"
+                  aria-label="show more"
+                  aria-controls={mobileMenuId}
+                  aria-haspopup="true"
+                  onClick={handleMobileMenuOpen}
+                  color="inherit"
+                >
+                  <MoreIcon />
+                </IconButton>
+              </Box>
+            </Toolbar>
+          </AppBar>
+          {renderMobileMenu}
+          {renderMenu}
+        </Box>
+      </div>
+      <ToastContainer />
     </div>
   );
 }

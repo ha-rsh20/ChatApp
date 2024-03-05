@@ -109,7 +109,6 @@ function Authentication(props) {
           });
           sessionStorage.setItem("login", "true");
           sessionStorage.setItem("uid", res.data.id);
-
           setTimeout(() => {
             navigate("/");
           }, 3000);

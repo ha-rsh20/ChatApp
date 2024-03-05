@@ -7,6 +7,7 @@ const searchU = expressAsyncHandler(async (req, res) => {
     .find()
     .then((data) => {
       users = data;
+      res.status(201).send(data);
     })
     .catch((err) => {
       console.log(err);
@@ -20,7 +21,7 @@ const searchU = expressAsyncHandler(async (req, res) => {
   );
 
   // console.log(users);
-  res.status(201).send(users);
+  //res.status(201).send(users);
 });
 
 module.exports = { searchU };

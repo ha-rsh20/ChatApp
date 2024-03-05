@@ -6,6 +6,7 @@ import { Button, TextField } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import { updateMessage } from "../state/slice/messageSlice";
+import { updateUserReceiver } from "../state/slice/userSlice";
 
 function ChatRoom(props) {
   const [rid, setRId] = useState("0");
@@ -27,7 +28,8 @@ function ChatRoom(props) {
 
   const getContactMessage = (receiverid) => {
     setRId(receiverid);
-    sessionStorage.setItem("id", receiverid);
+    dispatch(updateUserReceiver(receiverid));
+    sessionStorage.setItem("rid", receiverid);
     setSendA(false);
     axios
       .get(
@@ -41,6 +43,7 @@ function ChatRoom(props) {
       });
   };
 
+  //to pop message in sender side
   const NewMessage = (newMessage, serverOffset) => {
     setMessages((msgs) => [...msgs, newMessage]);
 
@@ -48,8 +51,10 @@ function ChatRoom(props) {
     socket.auth.serverOffset = serverOffset;
   };
 
+  //to block another live message from popping in another chat
   const NewMessageFrom = (newMessage, serverOffset, nid) => {
-    let zid;
+    console.log("new message");
+    let zid = sessionStorage.getItem("rid");
     setRId((id) => (zid = id));
     if (nid == zid) {
       setMessages((msgs) => [...msgs, newMessage]);
@@ -139,7 +144,7 @@ function ChatRoom(props) {
                     : { display: "flex", flexWrap: "wrap" }
                 }
               >
-                {<message>{item.message}</message>}
+                <message>{item.message}</message>
               </div>
             </div>
           ))}

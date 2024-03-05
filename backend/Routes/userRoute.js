@@ -11,6 +11,6 @@ router.route("/getContact/:id").get(getContacts);
 router.route("/getMessage/:id").get(getMessages);
 router.route("/searchUser/:input").get(searchU);
 router.route("/getContactMessage/:sid/:rid").get(getContactMessages);
-router.route("/addContact/:id").post(addContacts);
+router.route("/addContact/:uid/:cid").put(addContacts);
 
 module.exports = router;

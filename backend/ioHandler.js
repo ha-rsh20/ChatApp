@@ -16,7 +16,6 @@ const Handler = async (server) => {
 
     socket.on("con-id", (socketId, userId) => {
       idToSocket.set(userId, socket.id);
-      console.log(idToSocket);
     });
 
     socket.on("new-message", async (msg, sid, rid) => {
