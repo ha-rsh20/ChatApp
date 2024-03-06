@@ -49,44 +49,63 @@ const getContacts = async (id) => {
 };
 
 const addContacts = async (req, res) => {
-  let con;
-  await contact
-    .findOne({ uid: req.params.uid })
-    .then((data) => {
-      con = data;
-    })
-    .catch((err) => {
-      res.status(501).send(err);
-    });
+  let con = null;
+  let flag = true;
+  if (req.params.uid !== null) {
+    await contact
+      .findOne({ uid: req.params.uid })
+      .then((data) => {
+        con = data;
+      })
+      .catch((err) => {
+        flag = false;
+        //error code 201 for error in finding user
+        res.sendStatus(401);
+      });
 
-  con.cuid += req.params.cid + ",";
+    if (con != null) {
+      con.cuid += req.params.cid + ",";
 
-  contact
-    .updateOne({ uid: req.params.uid }, { $set: con })
-    .then(() => {})
-    .catch((err) => {
-      res.status(500).send(err);
-    });
+      contact
+        .updateOne({ uid: req.params.uid }, { $set: con })
+        .then(() => {})
+        .catch((err) => {
+          flag = false;
+          //error code 202 for error in adding target user in contact for user
+          res.sendStatus(402);
+        });
+    }
 
-  await contact
-    .findOne({ uid: req.params.cid })
-    .then((data) => {
-      con = data;
-    })
-    .catch((err) => {
-      res.status(501).send(err);
-    });
+    await contact
+      .findOne({ uid: req.params.cid })
+      .then((data) => {
+        con = data;
+      })
+      .catch((err) => {
+        flag = false;
+        //error code 203 for error in finding target user
+        res.sendStatus(403);
+      });
 
-  con.cuid += req.params.uid + ",";
+    if (con != null) {
+      con.cuid += req.params.uid + ",";
 
-  contact
-    .updateOne({ uid: req.params.cid }, { $set: con })
-    .then(() => {})
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-
-  res.status(201).send();
+      contact
+        .updateOne({ uid: req.params.cid }, { $set: con })
+        .then(() => {})
+        .catch((err) => {
+          flag = false;
+          //error code 204 for error in adding user in contact for target user
+          res.sendStatus(404);
+        });
+    }
+    if (flag) {
+      res.sendStatus(205);
+    }
+  } else {
+    //error code 500 for not logged in
+    res.status(500).send();
+  }
 };
 
 module.exports = { getContacts, addContacts };

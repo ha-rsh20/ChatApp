@@ -241,7 +241,7 @@ function NavBar(props) {
           "/" +
           item.uid
       )
-      .then(() => {
+      .then((res) => {
         toast.success("Contact added!", {
           position: "top-right",
           autoClose: 3000,
@@ -254,16 +254,62 @@ function NavBar(props) {
         });
       })
       .catch((err) => {
-        toast.error("Error in adding contact!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "dark",
-        });
+        if (err.response.status === 401) {
+          toast.error("Not logged in!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else if (err.response.status === 402) {
+          toast.error("Error in adding contact!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else if (err.response.status === 403) {
+          toast.error("User not found!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else if (err.response.status === 404) {
+          toast.error("Error in adding contact for user!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        } else {
+          toast.error("Error in adding contact!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+        }
       });
     console.log(item.firstname);
   };
@@ -337,7 +383,7 @@ function NavBar(props) {
               <div>
                 <div style={{ marginLeft: "2rem", width: "15rem" }}>
                   <ReactSearchAutocomplete
-                    items={fUsers}
+                    items={sessionStorage.getItem("uid") ? fUsers : []}
                     maxResults={5}
                     fuseOptions={{ keys: ["firstname", "lastname"] }}
                     resultStringKeyName="firstname"
