@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useSocket } from "../Context/SocketProvider";
 import "./message.css";
 import axios from "axios";
-import { Button, TextField } from "@mui/material";
+import { Button, TextField, ThemeProvider } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import { io } from "socket.io-client";
 import { updateMessage } from "../state/slice/messageSlice";
 import { updateUserReceiver } from "../state/slice/userSlice";
 
 function ChatRoom(props) {
+  const [theme, setTheme] = useState(useSelector((state) => state.users.mode));
+  const [contact, setContact] = useState();
   const [rid, setRId] = useState("0");
   const [sendA, setSendA] = useState(rid === 0 ? true : false);
   const [messages, setMessages] = useState([]);
@@ -16,6 +19,15 @@ function ChatRoom(props) {
   const [uid, setUId] = useState(sessionStorage.getItem("uid"));
   const dispatch = useDispatch();
   const socket = useSocket();
+
+  const darkContactTheme = {
+    backgroundColor: "black",
+    float: "left",
+  };
+  const lightContactTheme = {
+    backgroundColor: "white",
+    float: "left",
+  };
 
   const getContact = () => {
     axios
@@ -27,6 +39,7 @@ function ChatRoom(props) {
   };
 
   const getContactMessage = (receiverid) => {
+    setContact(() => contacts.filter((con) => con.id === receiverid));
     setRId(receiverid);
     dispatch(updateUserReceiver(receiverid));
     sessionStorage.setItem("rid", receiverid);
@@ -90,101 +103,130 @@ function ChatRoom(props) {
   }, []);
   return (
     <div style={{ marginLeft: 10, marginRight: 10 }}>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
-        <div
-          id="contacts"
-          style={{
-            width: "30%",
-            height: "600px",
-            overflow: "auto",
-            backgroundColor: "#a4a4a4",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-          }}
-        >
-          contacts
-          {contacts.map((item) => (
-            <div
-              key={item.id}
-              style={{ width: "100%" }}
-              onClick={() => {
-                getContactMessage(item.id);
-              }}
-            >
-              <contact>{item.firstname}</contact>
-            </div>
-          ))}
-        </div>
-        <div
-          id="messages"
-          style={{
-            padding: 5,
-            width: "100%",
-            height: "600px",
-            overflow: "auto",
-            backgroundColor: "#888888",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-          }}
-        >
-          Messages
-          {messages.map((item) => (
-            <div key={item.mid} style={{ width: "100%" }}>
-              <div
-                style={
-                  item.sid == uid
-                    ? { display: "flex", flexWrap: "wrap", float: "right" }
-                    : { display: "flex", flexWrap: "wrap" }
-                }
-              >
-                <message>{item.message}</message>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <form>
+      <ThemeProvider theme={theme}>
         <div
           style={{
-            paddingLeft: 10,
-            paddingRight: 10,
-            position: "fixed",
-            height: "55px",
-            bottom: 0,
-            left: 0,
-            width: "100%",
             display: "flex",
             flexDirection: "row",
-            marginBottom: 10,
           }}
         >
-          <TextField
-            variant="outlined"
-            type="text"
-            id="messageBox"
-            autoComplete="off"
+          <div
+            id="contacts"
             style={{
-              marginRight: 10,
-              width: "100%",
+              width: "30%",
+              height: "600px",
+              overflow: "auto",
+              backgroundColor: "#a4a4a4",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
             }}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            onClick={sendNewMessage}
-            disabled={sendA}
           >
-            Send
-          </Button>
+            contacts
+            {contacts.map((item) => (
+              <div
+                key={item.id}
+                style={{ width: "100%" }}
+                onClick={() => {
+                  getContactMessage(item.id);
+                }}
+              >
+                <contact>{item.firstname}</contact>
+              </div>
+            ))}
+          </div>
+          <div
+            style={{
+              padding: 5,
+              width: "100%",
+              height: "600px",
+              backgroundColor: "#888888",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 25,
+                width: "100%",
+                backgroundColor: "black",
+              }}
+            >
+              {contact && (
+                <div style={{ width: "100%" }}>
+                  <div style={{ float: "left", display: "flex" }}>
+                    <div style={{ margin: 5 }}>
+                      <AccountCircle style={{ fontSize: "30px" }} />
+                    </div>
+                    <div>
+                      {contact[0].firstname + " " + contact[0].lastname}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div
+              id="messages"
+              style={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "auto",
+              }}
+            >
+              {messages.map((item) => (
+                <div key={item.mid} style={{ width: "100%" }}>
+                  <div
+                    style={
+                      item.sid == uid
+                        ? { display: "flex", flexWrap: "wrap", float: "right" }
+                        : { display: "flex", flexWrap: "wrap" }
+                    }
+                  >
+                    <message>{item.message}</message>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </form>
+        <form>
+          <div
+            style={{
+              paddingLeft: 10,
+              paddingRight: 10,
+              position: "fixed",
+              height: "55px",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              display: "flex",
+              flexDirection: "row",
+              marginBottom: 10,
+            }}
+          >
+            <TextField
+              variant="outlined"
+              type="text"
+              id="messageBox"
+              autoComplete="off"
+              style={{
+                marginRight: 10,
+                width: "100%",
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              onClick={sendNewMessage}
+              disabled={sendA}
+            >
+              Send
+            </Button>
+          </div>
+        </form>
+      </ThemeProvider>
     </div>
   );
 }

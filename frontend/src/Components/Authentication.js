@@ -25,6 +25,11 @@ function Authentication(props) {
   const [emailAuth, setEmailAuth] = useState(false);
   const navigate = useNavigate();
 
+  const darkTheme = {
+    border: "5 solid white",
+  };
+  const lightTheme = {};
+
   const handleBoxValueChange = () => {
     setBoxValue(boxValue === "register" ? "login" : "register");
   };
@@ -214,24 +219,33 @@ function Authentication(props) {
 
   return (
     <div>
-      <form>
-        <div
-          style={{
-            marginTop: "20px",
-            display: "flex",
-            flexDirection: "column",
-            justifyItems: "center",
-            alignItems: "center",
-          }}
-        >
+      <ThemeProvider theme={theme}>
+        <form>
           <div
             style={{
-              borderRadius: "7px",
-              boxShadow: "0px 10px 30px -5px #2b0000",
-              padding: 10,
+              marginTop: "20px",
+              display: "flex",
+              flexDirection: "column",
+              justifyItems: "center",
+              alignItems: "center",
             }}
           >
-            <ThemeProvider theme={theme}>
+            <div
+              style={
+                theme === "dark"
+                  ? {
+                      border: "1px solid white",
+                      borderRadius: "7px",
+                      boxShadow: "0px 10px 30px -5px #2b0000",
+                      padding: 10,
+                    }
+                  : {
+                      borderRadius: "7px",
+                      boxShadow: "0px 10px 30px -5px #2b0000",
+                      padding: 10,
+                    }
+              }
+            >
               <Box
                 style={{
                   display: "flex",
@@ -378,10 +392,10 @@ function Authentication(props) {
                   : "Get OTP"}
               </Button>
               <ToastContainer />
-            </ThemeProvider>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </ThemeProvider>
     </div>
   );
 }
